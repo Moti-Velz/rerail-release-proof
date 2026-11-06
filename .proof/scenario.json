@@ -2,18 +2,18 @@
   "release-packs": {
     "plan": {
       "outputs": {
-        "publish": "javascript",
+        "publish": "node",
         "first": "",
         "held": ""
       }
     },
     "publish": {
-      "failAttempts": [
-        1
-      ],
       "outputs": {
-        "released": "@neralabs/rerail-pack-javascript@0.1.7:latest"
+        "released": "@neralabs/rerail-pack-node@0.1.6:latest"
       }
+    },
+    "dist-tags": {
+      "result": "failure"
     }
   },
   "release": {}
