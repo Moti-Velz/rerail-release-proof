@@ -1,0 +1,33 @@
+name: Node.js and dependencies
+description: Node.js v24 with the npm cache, `npm ci`, and optionally the built package from the build job.
+
+inputs:
+  built:
+    description: Download the `built` artifact (dist/ and the native engine) from the build job.
+    default: "false"
+  npm-cache:
+    description: >-
+      Restore and save the npm cache. A job that runs a pull request's code under pull_request_target sets it to false:
+      setup-node saves on a miss, into the base branch's scope, which every workflow on main restores.
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js v24
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version: "24"
+        cache: ${{ inputs.npm-cache == 'true' && 'npm' || '' }}
+        package-manager-cache: ${{ inputs.npm-cache == 'true' }}
+        cache-dependency-path: package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci # NOSONAR githubactions:S6505 -- trusted native dependency lifecycle scripts are required
+
+    - name: Download the built package
+      if: inputs.built == 'true'
+      uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: built

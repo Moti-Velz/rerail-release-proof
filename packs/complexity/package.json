@@ -1,0 +1,29 @@
+{
+  "name": "@neralabs/rerail-pack-complexity",
+  "version": "0.1.6",
+  "description": "Rerail rule pack: cyclomatic complexity limits for Python, TypeScript, JavaScript, PHP, Blade, Rust and Vue functions.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neralabs/rerail.git",
+    "directory": "packs/complexity"
+  },
+  "files": [
+    "pack.json",
+    "rules",
+    "LICENSE",
+    "NOTICE",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "@neralabs/rerail": ">=0.1.0-0 <0.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@neralabs/rerail": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
