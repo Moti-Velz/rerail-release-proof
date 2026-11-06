@@ -1,0 +1,209 @@
+[
+  {
+    "label": "packs: nothing to release (first push)",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42233230170",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Tag each release": "skipped",
+      "GitHub Releases": "skipped",
+      "Publish to npmjs": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "core: npm slow (150s) and dist-tag read-back fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42233274639",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Release": "success",
+      "Publish to npmjs": "success",
+      "Published dist-tags": "failure"
+    },
+    "timing": [
+      {
+        "first": "GitHub Release",
+        "firstCompleted": "2026-11-06T14:23:23Z",
+        "then": "Publish to npmjs",
+        "how": "completes",
+        "thenAt": "2026-11-06T14:25:16Z"
+      }
+    ]
+  },
+  {
+    "label": "packs: npm slow (150s)",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42233277839",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Tag each release": "success",
+      "GitHub Releases": "success",
+      "Publish to npmjs": "success",
+      "Published dist-tags": "success"
+    },
+    "timing": [
+      {
+        "first": "Tag each release",
+        "firstCompleted": "2026-11-06T14:22:38Z",
+        "then": "Publish to npmjs",
+        "how": "starts",
+        "thenAt": "2026-11-06T14:22:41Z"
+      },
+      {
+        "first": "GitHub Releases",
+        "firstCompleted": "2026-11-06T14:23:35Z",
+        "then": "Publish to npmjs",
+        "how": "completes",
+        "thenAt": "2026-11-06T14:25:16Z"
+      }
+    ]
+  },
+  {
+    "label": "core: npm publish fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42233801599",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Release": "success",
+      "Publish to npmjs": "failure",
+      "Published dist-tags": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs: npm publish fails (attempt 1)",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42233808012",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Tag each release": "success",
+      "GitHub Releases": "success",
+      "Publish to npmjs": "failure",
+      "Published dist-tags": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "core: Windows install fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234000374",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Release": "skipped",
+      "Publish to npmjs": "skipped",
+      "Published dist-tags": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs: re-run failed jobs republishes the same tagged version (attempt 2)",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42233808012/attempts/2",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Publish to npmjs": "success",
+      "Published dist-tags": "success",
+      "Tag each release": "success",
+      "GitHub Releases": "success"
+    },
+    "timing": []
+  },
+  {
+    "label": "core CONTROL (main's release.yml): dist-tag read-back fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234096772",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Release": "skipped",
+      "Publish to npmjs": "success",
+      "Published dist-tags": "failure"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs: dist-tag read-back fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234135560",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Tag each release": "success",
+      "GitHub Releases": "success",
+      "Publish to npmjs": "success",
+      "Published dist-tags": "failure"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs: validation fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234351847",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Validate and pack": "failure",
+      "Tag each release": "skipped",
+      "GitHub Releases": "skipped",
+      "Publish to npmjs": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs CONTROL (main's release-packs.yml): dist-tag read-back fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234445064",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Releases": "skipped",
+      "Publish to npmjs": "success",
+      "Published dist-tags": "failure"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs CONTROL (main's release-packs.yml): npm publish fails",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234579854",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Releases": "skipped",
+      "Publish to npmjs": "failure"
+    },
+    "timing": []
+  },
+  {
+    "label": "packs: nothing to release",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234701351",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Tag each release": "skipped",
+      "GitHub Releases": "skipped",
+      "Publish to npmjs": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "core: put-back to 0.1.2",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234745648",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "Point latest at 0.1.2": "success",
+      "GitHub Release": "success",
+      "Publish to npmjs": "skipped"
+    },
+    "timing": []
+  },
+  {
+    "label": "core: build only (no inputs)",
+    "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42234934043",
+    "pass": true,
+    "failures": [],
+    "jobs": {
+      "GitHub Release": "skipped",
+      "Publish to npmjs": "skipped",
+      "Package": "success"
+    },
+    "timing": []
+  }
+]
