@@ -1,0 +1,189 @@
+# Derived from release.yml by derive.mjs: real needs/if/outputs, stubbed build and npm steps.
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      latest:
+        description: A released core version (its v<version> tag exists) to point latest at, to put core back; empty to build without publishing
+        required: false
+        default: ""
+        type: string
+      publish:
+        description: The version to publish from main, retrying a tagged release that failed before publishing; nothing core ships may have changed since its tag. Leave latest empty
+        required: false
+        default: ""
+        type: string
+  push:
+    tags:
+      - v*
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  metadata:
+    name: Release metadata
+    if: ${{ !inputs.latest || inputs.publish }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      channel: ${{ steps.stub.outputs.channel }}
+      version: ${{ steps.stub.outputs.version }}
+    steps:
+      - &a1
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release metadata
+  package:
+    name: Package
+    needs: metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      tarball: ${{ steps.stub.outputs.tarball }}
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release package
+  shrinkwrap:
+    name: Packed shrinkwrap
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release shrinkwrap
+  windows-install:
+    name: Windows x64 managed install
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release windows-install
+  unix-install:
+    name: ${{ matrix.name }} managed install
+    needs: package
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            runner: ubuntu-24.04
+          - name: macOS arm64
+            runner: macos-15
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release unix-install
+  publish:
+    name: Publish to npmjs
+    needs:
+      - metadata
+      - package
+      - shrinkwrap
+      - windows-install
+      - unix-install
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) || (github.event_name == 'workflow_dispatch' && inputs.publish != '' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release publish
+  dist-tags:
+    name: Published dist-tags
+    needs:
+      - metadata
+      - publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release dist-tags
+  put-back:
+    name: Point latest at ${{ inputs.latest }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.latest && !inputs.publish && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release put-back
+  github-release:
+    name: GitHub Release
+    needs:
+      - metadata
+      - shrinkwrap
+      - windows-install
+      - unix-install
+      - put-back
+    if: |-
+      ${{
+        !cancelled() && (
+          needs.put-back.result == 'success' ||
+          (
+            needs.metadata.outputs.channel != '' &&
+            needs.shrinkwrap.result == 'success' &&
+            needs.windows-install.result == 'success' &&
+            needs.unix-install.result == 'success'
+          )
+        )
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: ./.github/actions/node-deps
+      - name: Create the GitHub Release from CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASED: ${{ inputs.latest && format('@neralabs/rerail@{0}:latest', inputs.latest) || format('@neralabs/rerail@{0}:{1}', needs.metadata.outputs.version, needs.metadata.outputs.channel) }}
+        run: node scripts/release/github-release.mjs

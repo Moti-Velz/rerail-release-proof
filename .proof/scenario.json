@@ -1,0 +1,12 @@
+{
+  "release-packs": {
+    "plan": {
+      "outputs": {
+        "publish": "",
+        "first": "",
+        "held": ""
+      }
+    }
+  },
+  "release": {}
+}
