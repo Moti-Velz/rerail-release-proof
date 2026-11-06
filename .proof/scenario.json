@@ -2,13 +2,10 @@
   "release-packs": {
     "plan": {
       "outputs": {
-        "publish": "rust",
+        "publish": "",
         "first": "",
         "held": ""
       }
-    },
-    "publish": {
-      "result": "failure"
     }
   },
   "release": {}
