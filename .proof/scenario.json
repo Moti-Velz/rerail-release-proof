@@ -2,9 +2,15 @@
   "release-packs": {
     "plan": {
       "outputs": {
-        "publish": "",
+        "publish": "python",
         "first": "",
         "held": ""
+      }
+    },
+    "publish": {
+      "sleep": 150,
+      "outputs": {
+        "released": "@neralabs/rerail-pack-python@0.1.7:latest"
       }
     }
   },
