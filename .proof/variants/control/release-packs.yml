@@ -1,0 +1,274 @@
+# Derived from release-packs.yml by derive.mjs: real needs/if/outputs, stubbed build and npm steps.
+name: Release packs
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - packs/**
+      - .changeset/**
+      - conformance/pack-validation.ts
+      - scripts/release/**
+      - .github/workflows/release-packs.yml
+      - .github/actions/pack-test-data/**
+      - scripts/s3/**
+  workflow_dispatch:
+    inputs:
+      pack:
+        description: Pack id to point latest at alone (the directory name under packs/); empty for every pack whose released version is not latest yet, less any held
+        required: false
+        default: ""
+        type: string
+      version:
+        description: Version of that pack to point latest at; empty for the one in packs/<id>/package.json on this branch, which releases a hold. An older version puts the pack back and holds it there until it is promoted by name again
+        required: false
+        default: ""
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.event_name == 'workflow_dispatch' && 'release-packs-promote' || format('release-packs-{0}', github.event.pull_request.number || github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  changesets:
+    name: Changesets
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - &a1
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs changesets
+  plan:
+    name: Packs to publish
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      publish: ${{ steps.plan.outputs.publish }}
+      first: ${{ steps.plan.outputs.first }}
+      held: ${{ steps.plan.outputs.held }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Fake npm (.proof/bin) first on PATH
+        run: echo "$GITHUB_WORKSPACE/.proof/bin" >> "$GITHUB_PATH"; echo "REG=$GITHUB_WORKSPACE/.proof/registry" >> "$GITHUB_ENV"; echo "LOG=/dev/null" >> "$GITHUB_ENV"
+      - name: Authenticate npm to read the packs
+        if: github.event_name == 'push'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PACKS_READ_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::Reading the restricted rule packs needs the repository secret NPM_PACKS_READ_TOKEN"
+            exit 1
+          fi
+          printf '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}\n' > "$HOME/.npmrc"
+      - id: plan
+        name: List unpublished pack versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NODE_AUTH_TOKEN: ${{ github.event_name == 'push' && secrets.NPM_PACKS_READ_TOKEN || '' }}
+        run: node scripts/release/packs-plan.mjs ${{ github.event_name == 'pull_request' && '--all' || '' }}
+  test-data:
+    name: Pack test data
+    needs: plan
+    if: |-
+      ${{
+        needs.plan.outputs.publish != '' &&
+        (
+          github.event_name != 'pull_request' ||
+          (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        )
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs test-data
+  pack:
+    name: Validate and pack
+    needs:
+      - plan
+      - test-data
+    if: |-
+      ${{
+        needs.plan.outputs.publish != '' &&
+        (
+          github.event_name != 'pull_request' ||
+          (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+        )
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rule-packs
+          path: .proof-out/rule-packs
+          if-no-files-found: error
+  tag:
+    name: Tag each release
+    needs:
+      - plan
+      - pack
+    if: github.event_name == 'push' && needs.plan.outputs.publish != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      released: ${{ steps.tag.outputs.released }}
+    steps:
+      - name: Set up Node.js v24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: "24"
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Download the pack tarballs
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: rule-packs
+          path: ${{ runner.temp }}/rule-packs
+      - id: tag
+        name: Tag each release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          HELD: ${{ needs.plan.outputs.held }}
+        run: node scripts/release/packs-tag.mjs "$RUNNER_TEMP/rule-packs"
+  github-releases:
+    name: GitHub Releases
+    needs: tag
+    if: needs.tag.outputs.released != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: ./.github/actions/node-deps
+      - name: Create each GitHub Release from the pack's CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASED: ${{ needs.tag.outputs.released }}
+        run: node scripts/release/github-release.mjs
+  publish:
+    name: Publish to npmjs
+    needs:
+      - plan
+      - pack
+      - tag
+    if: github.event_name == 'push' && needs.plan.outputs.publish != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      released: ${{ steps.stub.outputs.released }}
+    steps:
+      - *a1
+      - uses: actions/download-artifact@v4
+        with:
+          name: rule-packs
+          path: .proof-in/rule-packs
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs publish
+  dist-tags:
+    name: Published dist-tags
+    needs: publish
+    if: needs.publish.outputs.released != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs dist-tags
+  first-publish:
+    name: First publish needed
+    needs:
+      - plan
+      - publish
+    if: always() && github.event_name == 'push' && needs.plan.outputs.first != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Report the packs that need their first publish by hand
+        env:
+          FIRST: ${{ needs.plan.outputs.first }}
+        run: |
+          echo "::error::Never published, so not published by this run: ${FIRST}. Publish each by hand and configure its trusted publisher (docs/publishing-a-new-pack.md)."
+          exit 1
+  promote-plan:
+    name: Packs to promote
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      promote: ${{ steps.stub.outputs.promote }}
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs promote-plan
+  promote:
+    name: Promote to latest
+    needs: promote-plan
+    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && needs.promote-plan.outputs.promote != '' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - *a1
+      - id: stub
+        name: Stub
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: node .proof/stub.mjs release-packs promote

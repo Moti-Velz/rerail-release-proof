@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# The proof's npm: the registry is $REG (.proof/registry), one `<name> <version> [<dist-tag>]` per line. It answers
+# only the reads packs-plan.mjs makes: `npm dist-tag ls <name>` and `npm view <name> versions --json`.
+echo "npm $*" >> "${LOG:-/dev/null}"
+case "$1" in
+  dist-tag)
+    [ "$2" = ls ] || { echo "unexpected npm call: $*" >&2; exit 2; }
+    awk -v n="$3" '$1==n && $3!="" {print $3": "$2}' "$REG" ;;
+  view)
+    node -e 'const [n, f] = process.argv.slice(1); const v = require("fs").readFileSync(f, "utf8").split("\n").map((l) => l.split(" ")).filter((p) => p[0] === n).map((p) => p[1]); if (v.length === 0) { console.error("npm error code E404"); process.exit(1); } console.log(JSON.stringify(v.length === 1 ? v[0] : v));' "$2" "$REG" ;;
+  *) echo "unexpected npm call: $*" >&2; exit 2 ;;
+esac
