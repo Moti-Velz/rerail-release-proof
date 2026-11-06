@@ -1,0 +1,20 @@
+=== run 42263158182 attempt 1
+Packs to publish: publish typescript 0.1.6
+Packs to publish: publish vue 0.1.6
+Tag each release: tagged @neralabs/rerail-pack-typescript@0.1.6
+Tag each release: tagged @neralabs/rerail-pack-vue@0.1.6
+Publish to npmjs: stub release-packs/publish, attempt 1: failure
+=== run 42263158182 attempt 2
+Packs to publish: Every pack's version is published.
+=== run 42263531254 attempt 1
+Packs to publish: publish typescript 0.1.6 (tagged but not on npm: published again)
+Packs to publish: publish vue 0.1.6 (tagged but not on npm: published again)
+Tag each release: @neralabs/rerail-pack-typescript@0.1.6 is tagged already
+Tag each release: @neralabs/rerail-pack-vue@0.1.6 is tagged already
+Publish to npmjs: stub release-packs/publish, attempt 1: failure
+=== run 42263531254 attempt 2
+Packs to publish: publish typescript 0.1.6 (tagged but not on npm: published again)
+Packs to publish: publish vue 0.1.6 (tagged but not on npm: published again)
+Tag each release: @neralabs/rerail-pack-typescript@0.1.6 is tagged already
+Tag each release: @neralabs/rerail-pack-vue@0.1.6 is tagged already
+Publish to npmjs: stub release-packs/publish, attempt 2: success

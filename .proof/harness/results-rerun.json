@@ -27,5 +27,34 @@
       "plan": [],
       "tag": []
     }
+  },
+  "new": {
+    "label": "NEW (b5110c150): next push, publish fails, then re-run all jobs",
+    "attempt1": {
+      "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42263531254/attempts/1",
+      "conclusion": "failure",
+      "jobs": {
+        "Packs to publish": "success",
+        "Tag each release": "success",
+        "GitHub Releases": "success",
+        "Publish to npmjs": "failure",
+        "Published dist-tags": "skipped"
+      },
+      "plan": [],
+      "tag": []
+    },
+    "attempt2": {
+      "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42263531254/attempts/2",
+      "conclusion": "success",
+      "jobs": {
+        "Packs to publish": "success",
+        "Tag each release": "success",
+        "GitHub Releases": "success",
+        "Publish to npmjs": "success",
+        "Published dist-tags": "success"
+      },
+      "plan": [],
+      "tag": []
+    }
   }
 }
