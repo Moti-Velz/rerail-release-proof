@@ -1,12 +1,17 @@
 {
-  "release-packs": {
-    "plan": {
+  "release": {
+    "metadata": {
       "outputs": {
-        "publish": "",
-        "first": "",
-        "held": ""
+        "channel": "latest",
+        "version": "0.1.2"
       }
+    },
+    "publish": {
+      "sleep": 150
+    },
+    "dist-tags": {
+      "result": "failure"
     }
   },
-  "release": {}
+  "release-packs": {}
 }
