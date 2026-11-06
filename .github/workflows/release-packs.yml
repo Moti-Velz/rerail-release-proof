@@ -50,18 +50,36 @@ jobs:
     name: Packs to publish
     if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 5
     outputs:
-      publish: ${{ steps.stub.outputs.publish }}
-      first: ${{ steps.stub.outputs.first }}
-      held: ${{ steps.stub.outputs.held }}
+      publish: ${{ steps.plan.outputs.publish }}
+      first: ${{ steps.plan.outputs.first }}
+      held: ${{ steps.plan.outputs.held }}
     steps:
-      - *a1
-      - id: stub
-        name: Stub
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Fake npm (.proof/bin) first on PATH
+        run: echo "$GITHUB_WORKSPACE/.proof/bin" >> "$GITHUB_PATH"; echo "REG=$GITHUB_WORKSPACE/.proof/registry" >> "$GITHUB_ENV"; echo "LOG=/dev/null" >> "$GITHUB_ENV"
+      - name: Authenticate npm to read the packs
+        if: github.event_name == 'push'
         env:
-          NEEDS: ${{ toJSON(needs) }}
-        run: node .proof/stub.mjs release-packs plan
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PACKS_READ_TOKEN }}
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::Reading the restricted rule packs needs the repository secret NPM_PACKS_READ_TOKEN"
+            exit 1
+          fi
+          printf '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}\n' > "$HOME/.npmrc"
+      - id: plan
+        name: List unpublished pack versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NODE_AUTH_TOKEN: ${{ github.event_name == 'push' && secrets.NPM_PACKS_READ_TOKEN || '' }}
+        run: node scripts/release/packs-plan.mjs ${{ github.event_name == 'pull_request' && '--all' || '' }}
   test-data:
     name: Pack test data
     needs: plan

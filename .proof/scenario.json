@@ -1,10 +1,11 @@
 {
   "release-packs": {
-    "plan": {
+    "publish": {
+      "failAttempts": [
+        1
+      ],
       "outputs": {
-        "publish": "",
-        "first": "",
-        "held": ""
+        "released": "@neralabs/rerail-pack-typescript@0.1.6:latest @neralabs/rerail-pack-vue@0.1.6:latest"
       }
     }
   },
