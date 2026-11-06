@@ -1,0 +1,31 @@
+{
+  "control": {
+    "label": "CONTROL (5ce0cd0f7): publish fails, then re-run all jobs",
+    "attempt1": {
+      "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42263158182/attempts/1",
+      "conclusion": "failure",
+      "jobs": {
+        "Packs to publish": "success",
+        "Tag each release": "success",
+        "GitHub Releases": "success",
+        "Publish to npmjs": "failure",
+        "Published dist-tags": "skipped"
+      },
+      "plan": [],
+      "tag": []
+    },
+    "attempt2": {
+      "url": "https://github.com/Moti-Velz/rerail-release-proof/actions/runs/42263158182/attempts/2",
+      "conclusion": "success",
+      "jobs": {
+        "Packs to publish": "success",
+        "Tag each release": "skipped",
+        "GitHub Releases": "skipped",
+        "Publish to npmjs": "skipped",
+        "Published dist-tags": "skipped"
+      },
+      "plan": [],
+      "tag": []
+    }
+  }
+}
