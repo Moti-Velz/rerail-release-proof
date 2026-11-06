@@ -1,20 +1,14 @@
 {
-  "release-packs": {
-    "plan": {
+  "release": {
+    "metadata": {
       "outputs": {
-        "publish": "javascript",
-        "first": "",
-        "held": ""
+        "channel": "next",
+        "version": "0.1.2-next.2"
       }
     },
-    "publish": {
-      "failAttempts": [
-        1
-      ],
-      "outputs": {
-        "released": "@neralabs/rerail-pack-javascript@0.1.7:latest"
-      }
+    "windows-install": {
+      "result": "failure"
     }
   },
-  "release": {}
+  "release-packs": {}
 }
