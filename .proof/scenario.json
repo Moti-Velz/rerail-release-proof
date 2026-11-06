@@ -2,17 +2,12 @@
   "release-packs": {
     "plan": {
       "outputs": {
-        "publish": "node",
+        "publish": "php",
         "first": "",
         "held": ""
       }
     },
-    "publish": {
-      "outputs": {
-        "released": "@neralabs/rerail-pack-node@0.1.6:latest"
-      }
-    },
-    "dist-tags": {
+    "pack": {
       "result": "failure"
     }
   },
