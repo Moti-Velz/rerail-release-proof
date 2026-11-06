@@ -2,12 +2,17 @@
   "release-packs": {
     "plan": {
       "outputs": {
-        "publish": "php",
+        "publish": "react",
         "first": "",
         "held": ""
       }
     },
-    "pack": {
+    "publish": {
+      "outputs": {
+        "released": "@neralabs/rerail-pack-react@0.1.7:latest"
+      }
+    },
+    "dist-tags": {
       "result": "failure"
     }
   },

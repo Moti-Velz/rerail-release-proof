@@ -114,73 +114,17 @@ jobs:
           name: rule-packs
           path: .proof-out/rule-packs
           if-no-files-found: error
-  tag:
-    name: Tag each release
-    needs:
-      - plan
-      - pack
-    if: github.event_name == 'push' && needs.plan.outputs.publish != ''
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    outputs:
-      released: ${{ steps.tag.outputs.released }}
-    steps:
-      - name: Set up Node.js v24
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
-        with:
-          node-version: "24"
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - name: Download the pack tarballs
-        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
-        with:
-          name: rule-packs
-          path: ${{ runner.temp }}/rule-packs
-      - id: tag
-        name: Tag each release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          HELD: ${{ needs.plan.outputs.held }}
-        run: node scripts/release/packs-tag.mjs "$RUNNER_TEMP/rule-packs"
-  github-releases:
-    name: GitHub Releases
-    needs: tag
-    if: needs.tag.outputs.released != ''
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-          persist-credentials: false
-      - uses: ./.github/actions/node-deps
-      - name: Create each GitHub Release from the pack's CHANGELOG.md
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RELEASED: ${{ needs.tag.outputs.released }}
-        run: node scripts/release/github-release.mjs
   publish:
     name: Publish to npmjs
     needs:
       - plan
       - pack
-      - tag
     if: github.event_name == 'push' && needs.plan.outputs.publish != ''
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: release
     permissions:
-      contents: read
+      contents: write
       id-token: write
     outputs:
       released: ${{ steps.stub.outputs.released }}
@@ -208,6 +152,28 @@ jobs:
         env:
           NEEDS: ${{ toJSON(needs) }}
         run: node .proof/stub.mjs release-packs dist-tags
+  github-releases:
+    name: GitHub Releases
+    needs:
+      - publish
+      - dist-tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: ./.github/actions/node-deps
+      - name: Create each GitHub Release from the pack's CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASED: ${{ needs.publish.outputs.released }}
+        run: node scripts/release/github-release.mjs
   first-publish:
     name: First publish needed
     needs:

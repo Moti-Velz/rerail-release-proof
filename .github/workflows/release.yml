@@ -154,22 +154,9 @@ jobs:
     name: GitHub Release
     needs:
       - metadata
-      - shrinkwrap
-      - windows-install
-      - unix-install
+      - dist-tags
       - put-back
-    if: |-
-      ${{
-        !cancelled() && (
-          needs.put-back.result == 'success' ||
-          (
-            needs.metadata.outputs.channel != '' &&
-            needs.shrinkwrap.result == 'success' &&
-            needs.windows-install.result == 'success' &&
-            needs.unix-install.result == 'success'
-          )
-        )
-      }}
+    if: ${{ !cancelled() && (needs.dist-tags.result == 'success' || needs.put-back.result == 'success') }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
